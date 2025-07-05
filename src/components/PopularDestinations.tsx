@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Map, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Destination {
@@ -82,14 +82,14 @@ const PopularDestinations: React.FC = () => {
             <button 
               onClick={handlePrev}
               disabled={currentIndex === 0}
-              className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 will-change-transform"
             >
               <ChevronLeft size={20} />
             </button>
             <button 
               onClick={handleNext}
               disabled={currentIndex >= destinations.length - visibleCount.desktop}
-              className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 will-change-transform"
             >
               <ChevronRight size={20} />
             </button>
@@ -98,7 +98,7 @@ const PopularDestinations: React.FC = () => {
 
         <div className="relative overflow-hidden">
           <div 
-            className="flex transition-transform duration-500 ease-out"
+            className="flex transition-transform duration-300 ease-out will-change-transform"
             style={{ 
               transform: `translateX(-${currentIndex * (100 / visibleCount.desktop)}%)`,
               width: `${(destinations.length / visibleCount.desktop) * 100}%` 
@@ -119,14 +119,14 @@ const PopularDestinations: React.FC = () => {
           <button 
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             <ChevronLeft size={20} />
           </button>
           <button 
             onClick={handleNext}
             disabled={currentIndex >= destinations.length - 1}
-            className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             <ChevronRight size={20} />
           </button>
@@ -140,13 +140,15 @@ interface DestinationCardProps {
   destination: Destination;
 }
 
-const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
+const DestinationCard: React.FC<DestinationCardProps> = memo(({ destination }) => {
   return (
-    <div className="destination-card relative h-80 rounded-xl overflow-hidden group cursor-pointer">
+    <div className="destination-card relative h-80 rounded-xl overflow-hidden group cursor-pointer will-change-transform">
       <img 
         src={destination.image} 
         alt={destination.name} 
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 will-change-transform"
+        loading="lazy"
+        decoding="async"
       />
       
       <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
@@ -162,6 +164,8 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
       </div>
     </div>
   );
-};
+});
+
+DestinationCard.displayName = 'DestinationCard';
 
 export default PopularDestinations;
