@@ -19,9 +19,9 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white relative overflow-hidden">
       {/* Éléments décoratifs */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-600"></div>
-      <div className="absolute top-10 right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 left-16 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl"></div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600"></div>
+      <div className="absolute top-10 right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 left-16 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl"></div>
 
       <div className="max-w-7xl mx-auto px-4 pt-16 pb-8 relative">
         {/* Section principale */}
@@ -30,15 +30,15 @@ const Footer: React.FC = () => {
           <div className="lg:col-span-1">
             <div className="flex items-center mb-6">
               <div className="relative">
-                <Plane className="h-10 w-10 text-blue-400 transform -rotate-45" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse"></div>
+                <Plane className="h-10 w-10 text-emerald-400 transform -rotate-45" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-pulse"></div>
               </div>
               <div className="ml-3">
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Alboraq
+                <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                  Nooraya
                 </span>
                 <span className="block text-xs text-gray-400 font-light tracking-wider uppercase">
-                  Voyages Élégants
+                  Groupe
                 </span>
               </div>
             </div>

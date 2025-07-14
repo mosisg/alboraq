@@ -53,16 +53,16 @@ const Header: React.FC = () => {
           {/* Logo amélioré */}
           <Link to="/" className="flex-shrink-0 flex items-center group">
             <div className="relative">
-              <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full opacity-20 group-hover:opacity-30 transition-opacity blur-sm"></div>
-              <Plane className="relative h-8 w-8 lg:h-10 lg:w-10 text-blue-600 transform -rotate-45 transition-all duration-500 group-hover:rotate-0 group-hover:scale-110" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-75 animate-pulse"></div>
+              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full opacity-20 group-hover:opacity-30 transition-opacity blur-sm"></div>
+              <Plane className="relative h-8 w-8 lg:h-10 lg:w-10 text-emerald-600 transform -rotate-45 transition-all duration-500 group-hover:rotate-0 group-hover:scale-110" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-75 animate-pulse"></div>
             </div>
             <div className="ml-3">
-              <span className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                Alboraq
+              <span className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 bg-clip-text text-transparent">
+                Nooraya
               </span>
               <span className="block text-xs text-gray-500 font-light tracking-wider uppercase">
-                Voyages Élégants
+                Groupe
               </span>
             </div>
           </Link>

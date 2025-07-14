@@ -24,11 +24,11 @@
   }
   
   .btn-primary {
-    @apply btn bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 shadow-lg hover:shadow-xl;
+    @apply btn bg-gradient-to-r from-emerald-600 to-teal-700 text-white hover:from-emerald-700 hover:to-teal-800 focus:ring-emerald-500 shadow-lg hover:shadow-xl;
   }
   
   .btn-secondary {
-    @apply btn bg-white text-blue-700 border border-blue-200 hover:bg-blue-50 focus:ring-blue-500 hover:border-blue-300;
+    @apply btn bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50 focus:ring-emerald-500 hover:border-emerald-300;
   }
   
   .btn-success {
@@ -36,7 +36,7 @@
   }
   
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base transition-all duration-200 bg-white hover:border-gray-300;
+    @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base transition-all duration-200 bg-white hover:border-gray-300;
   }
   
   .card {
@@ -52,7 +52,7 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent;
   }
 
   .floating-animation {
@@ -61,20 +61,20 @@
 
   .pulse-glow {
     @apply animate-pulse;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
   }
 }
 
 .search-tab-active {
-  @apply text-blue-600 border-blue-600 bg-blue-50;
+  @apply text-emerald-600 border-emerald-600 bg-emerald-50;
 }
 
 .search-tab-inactive {
-  @apply text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50;
+  @apply text-gray-500 border-transparent hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50;
 }
 
 .hero-section {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(147, 51, 234, 0.8) 100%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(20, 184, 166, 0.8) 100%);
   position: relative;
 }
 
@@ -107,7 +107,7 @@
 
 .destination-card::after {
   content: '';
-  @apply absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 transition-opacity duration-300;
+  @apply absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 opacity-0 transition-opacity duration-300;
 }
 
 .destination-card:hover::after {

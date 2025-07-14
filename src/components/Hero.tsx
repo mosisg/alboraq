@@ -84,7 +84,7 @@ const Hero: React.FC = () => {
       
       <div className="relative z-10 w-full max-w-6xl mx-auto text-center px-4">
         {/* Badge de promotion optimisé */}
-        <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full text-sm font-medium mb-6 animate-pulse will-change-transform">
+        <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full text-sm font-medium mb-6 animate-pulse will-change-transform">
           <Sparkles className="mr-2" size={16} />
           Offres limitées - Jusqu'à 70% de réduction
           <TrendingUp className="ml-2" size={16} />
@@ -92,7 +92,7 @@ const Hero: React.FC = () => {
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 drop-shadow-2xl">
           <span className="block">Partez l'esprit</span>
-          <span className="block bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+          <span className="block bg-gradient-to-r from-emerald-300 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
             léger
           </span>
         </h1>
