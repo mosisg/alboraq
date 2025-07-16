@@ -1,326 +1,406 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plane, Building, Calendar, Users, ArrowRightLeft, Search, MapPin, Sparkles, TrendingUp } from 'lucide-react';
-
-// Lazy loading du composant SearchForm
-const SearchForm = lazy(() => import('./SearchForm'));
+import { Plane, Building, Car, Calendar, Users, ArrowRightLeft, Search, MapPin, X } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const Hero: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'combined'>('flights');
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'cars'>('flights');
+  const [tripType, setTripType] = useState('round-trip');
+  const [departureDate, setDepartureDate] = useState<Date | null>(null);
+  const [returnDate, setReturnDate] = useState<Date | null>(null);
+  const [passengers, setPassengers] = useState({ adults: 1, children: 0, infants: 0, class: 'economy' });
+  const [showPassengersDropdown, setShowPassengersDropdown] = useState(false);
+  const [fromLocation, setFromLocation] = useState('Maroc (MA)');
+  const [toLocation, setToLocation] = useState('');
+  const [showFromDropdown, setShowFromDropdown] = useState(false);
+  const [showToDropdown, setShowToDropdown] = useState(false);
+  const [nearbyAirports, setNearbyAirports] = useState(false);
+  const [directFlights, setDirectFlights] = useState(false);
+  
   const navigate = useNavigate();
+  const fromRef = useRef<HTMLDivElement>(null);
+  const toRef = useRef<HTMLDivElement>(null);
 
-  const backgroundImages = [
-    'https://images.pexels.com/photos/3769138/pexels-photo-3769138.jpeg',
-    'https://images.pexels.com/photos/1008155/pexels-photo-1008155.jpeg',
-    'https://images.pexels.com/photos/2034335/pexels-photo-2034335.jpeg'
+  const moroccanAirports = [
+    { code: 'MA', name: 'Maroc', type: 'country', flag: '🇲🇦' },
+    { code: 'CMN', name: 'Casablanca Mohamed V.', city: 'Maroc', type: 'airport' },
+    { code: 'RBA', name: 'Rabat', city: 'Maroc', type: 'airport' },
+    { code: 'RAK', name: 'Marrakech Menara', city: 'Maroc', type: 'airport' },
+    { code: 'TNG', name: 'Tanger-Ibn Battouta', city: 'Maroc', type: 'airport' },
+    { code: 'AGA', name: 'Agadir', city: 'Maroc', type: 'airport' },
+    { code: 'FEZ', name: 'Fès Saïs', city: 'Maroc', type: 'airport' },
+    { code: 'ESU', name: 'Essaouira', city: 'Maroc', type: 'airport' },
+    { code: 'NDR', name: 'Nador', city: 'Maroc', type: 'airport' },
+    { code: 'VIL', name: 'Dakhla', city: 'Maroc', type: 'airport' }
   ];
 
-  // Préchargement optimisé des images
-  useEffect(() => {
-    const preloadImages = async () => {
-      const imagePromises = backgroundImages.map((src) => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = src;
-        });
-      });
+  const popularDestinations = [
+    { code: 'CDG', name: 'Paris Charles de Gaulle', city: 'France', type: 'airport' },
+    { code: 'LHR', name: 'Londres Heathrow', city: 'Royaume-Uni', type: 'airport' },
+    { code: 'MAD', name: 'Madrid Barajas', city: 'Espagne', type: 'airport' },
+    { code: 'FCO', name: 'Rome Fiumicino', city: 'Italie', type: 'airport' },
+    { code: 'IST', name: 'Istanbul', city: 'Turquie', type: 'airport' },
+    { code: 'DXB', name: 'Dubaï', city: 'Émirats Arabes Unis', type: 'airport' }
+  ];
 
-      try {
-        await Promise.all(imagePromises);
-        setImagesLoaded(true);
-      } catch (error) {
-        console.warn('Some images failed to preload:', error);
-        setImagesLoaded(true); // Continue anyway
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (fromRef.current && !fromRef.current.contains(event.target as Node)) {
+        setShowFromDropdown(false);
+      }
+      if (toRef.current && !toRef.current.contains(event.target as Node)) {
+        setShowToDropdown(false);
       }
     };
 
-    preloadImages();
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!imagesLoaded) return;
-    
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [imagesLoaded]);
+  const handleSearch = () => {
+    const searchData = {
+      from: fromLocation,
+      to: toLocation,
+      departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : '',
+      returnDate: returnDate ? format(returnDate, 'yyyy-MM-dd') : '',
+      passengers: passengers.adults + passengers.children + passengers.infants,
+      class: passengers.class,
+      tripType,
+      nearbyAirports,
+      directFlights
+    };
 
-  const handleSearch = (searchData: any, type: string) => {
-    if (type === 'flights') {
+    if (activeTab === 'flights') {
       navigate('/flight-results', { state: searchData });
-    } else if (type === 'hotels') {
+    } else if (activeTab === 'hotels') {
       navigate('/hotel-results', { state: searchData });
     }
   };
 
+  const swapLocations = () => {
+    const temp = fromLocation;
+    setFromLocation(toLocation);
+    setToLocation(temp);
+  };
+
+  const selectLocation = (location: any, type: 'from' | 'to') => {
+    const locationText = location.type === 'country' 
+      ? `${location.name} (${location.code})`
+      : `${location.name} (${location.code})`;
+    
+    if (type === 'from') {
+      setFromLocation(locationText);
+      setShowFromDropdown(false);
+    } else {
+      setToLocation(locationText);
+      setShowToDropdown(false);
+    }
+  };
+
   return (
-    <section className="hero-section relative flex items-center justify-center min-h-[500px] sm:min-h-[600px] md:min-h-[700px] px-4 py-8 sm:py-12 md:py-16 overflow-hidden">
-      {/* Background optimisé avec lazy loading */}
-      <div className="absolute inset-0">
-        {imagesLoaded && backgroundImages.map((image, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 will-change-opacity ${
-              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+    <section className="bg-[#0F1B3D] min-h-[600px] flex flex-col justify-center px-4 py-12">
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Service Tabs */}
+        <div className="flex space-x-1 mb-8">
+          <button
+            onClick={() => setActiveTab('flights')}
+            className={`flex items-center px-6 py-3 rounded-full text-sm font-medium transition-all ${
+              activeTab === 'flights'
+                ? 'bg-[#2979FF] text-white shadow-lg'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
             }`}
-            style={{ 
-              backgroundImage: `url(${image})`,
-              transform: 'translateZ(0)' // GPU acceleration
-            }}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/70 via-purple-900/60 to-blue-800/70"></div>
-        
-        {/* Éléments décoratifs optimisés */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl floating-animation gpu-accelerated"></div>
-        <div className="absolute bottom-32 right-16 w-32 h-32 bg-purple-400/20 rounded-full blur-2xl floating-animation gpu-accelerated" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-blue-400/20 rounded-full blur-xl floating-animation gpu-accelerated" style={{ animationDelay: '4s' }}></div>
-      </div>
-      
-      <div className="relative z-10 w-full max-w-6xl mx-auto text-center px-4">
-        {/* Badge de promotion optimisé */}
-        <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full text-sm font-medium mb-6 animate-pulse will-change-transform">
-          <Sparkles className="mr-2" size={16} />
-          Offres limitées - Jusqu'à 70% de réduction
-          <TrendingUp className="ml-2" size={16} />
+          >
+            <Plane className="mr-2" size={16} />
+            Vols
+          </button>
+          <button
+            onClick={() => setActiveTab('hotels')}
+            className={`flex items-center px-6 py-3 rounded-full text-sm font-medium transition-all ${
+              activeTab === 'hotels'
+                ? 'bg-[#2979FF] text-white shadow-lg'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            <Building className="mr-2" size={16} />
+            Hôtels
+          </button>
+          <button
+            onClick={() => setActiveTab('cars')}
+            className={`flex items-center px-6 py-3 rounded-full text-sm font-medium transition-all ${
+              activeTab === 'cars'
+                ? 'bg-[#2979FF] text-white shadow-lg'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            <Car className="mr-2" size={16} />
+            Location de voiture
+          </button>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 drop-shadow-2xl">
-          <span className="block">Partez l'esprit</span>
-          <span className="block bg-gradient-to-r from-emerald-300 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-            léger
-          </span>
-        </h1>
-        
-        <p className="text-xl sm:text-2xl text-white/90 mb-8 sm:mb-12 drop-shadow-lg max-w-3xl mx-auto leading-relaxed">
-          Découvrez le monde avec nos offres exclusives et notre service premium
-        </p>
-
-        {/* Statistiques optimisées */}
-        <div className="flex flex-wrap justify-center gap-6 mb-8 sm:mb-12">
-          <StatCard number="2M+" label="Destinations" />
-          <StatCard number="50K+" label="Hôtels partenaires" />
-          <StatCard number="1M+" label="Voyageurs satisfaits" />
+        {/* Title */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+            Des millions de vols pas chers.
+          </h1>
+          <p className="text-xl text-white/90">
+            Une simple recherche.
+          </p>
         </div>
 
-        <div className="glass-effect rounded-3xl shadow-2xl overflow-hidden max-w-5xl mx-auto">
-          {/* Onglets de recherche optimisés */}
-          <div className="flex overflow-x-auto sm:overflow-visible border-b border-white/20">
-            <SearchTab
-              active={activeTab === 'flights'}
-              onClick={() => setActiveTab('flights')}
-              icon={<Plane size={20} />}
-              label="Vols"
-              description="Comparez les prix"
-            />
-            
-            <SearchTab
-              active={activeTab === 'hotels'}
-              onClick={() => setActiveTab('hotels')}
-              icon={<Building size={20} />}
-              label="Hôtels"
-              description="Meilleurs tarifs"
-            />
-            
-            <SearchTab
-              active={activeTab === 'combined'}
-              onClick={() => setActiveTab('combined')}
-              icon={<ArrowRightLeft size={20} />}
-              label="Vol + Hôtel"
-              description="Économisez plus"
-              badge="Populaire"
-            />
+        {/* Search Form */}
+        <div className="bg-white rounded-2xl p-6 shadow-2xl">
+          {/* Trip Type */}
+          <div className="mb-6">
+            <select
+              value={tripType}
+              onChange={(e) => setTripType(e.target.value)}
+              className="bg-transparent border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2979FF] focus:border-transparent"
+            >
+              <option value="round-trip">Aller-retour</option>
+              <option value="one-way">Aller simple</option>
+              <option value="multi-city">Multi-destinations</option>
+            </select>
           </div>
 
-          {/* Formulaires de recherche avec lazy loading */}
-          <div className="p-6 sm:p-8">
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-gray-600">Chargement...</span>
+          {/* Search Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            {/* From */}
+            <div className="relative" ref={fromRef}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">De</label>
+              <div
+                className="relative bg-white border border-gray-300 rounded-lg px-4 py-3 cursor-pointer hover:border-[#2979FF] focus-within:border-[#2979FF] focus-within:ring-2 focus-within:ring-[#2979FF]/20"
+                onClick={() => setShowFromDropdown(!showFromDropdown)}
+              >
+                <div className="text-gray-900 font-medium">{fromLocation}</div>
+                {showFromDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
+                    {moroccanAirports.map((airport) => (
+                      <div
+                        key={airport.code}
+                        className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => selectLocation(airport, 'from')}
+                      >
+                        {airport.type === 'country' ? (
+                          <div className="flex items-center">
+                            <span className="text-2xl mr-3">{airport.flag}</span>
+                            <div>
+                              <div className="font-medium">{airport.name} ({airport.code})</div>
+                              <div className="text-sm text-gray-600">{airport.name}</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center">
+                            <Plane className="text-gray-400 mr-3" size={20} />
+                            <div>
+                              <div className="font-medium">{airport.name} ({airport.code})</div>
+                              <div className="text-sm text-gray-600">{airport.city}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            }>
-              {activeTab === 'flights' && (
-                <SearchForm 
-                  type="flights"
-                  onSearch={handleSearch}
-                  fields={[
-                    { 
-                      id: 'departure', 
-                      label: 'Départ de', 
-                      type: 'text', 
-                      placeholder: 'Ville ou aéroport',
-                      icon: <MapPin size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'destination', 
-                      label: 'Destination', 
-                      type: 'text', 
-                      placeholder: 'Ville ou aéroport',
-                      icon: <MapPin size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'dates', 
-                      label: 'Dates', 
-                      type: 'text', 
-                      placeholder: 'Aller - Retour',
-                      icon: <Calendar size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'passengers', 
-                      label: 'Voyageurs', 
-                      type: 'text', 
-                      placeholder: '1 adulte',
-                      icon: <Users size={18} className="text-gray-400" />
-                    }
-                  ]}
-                  buttonText="Rechercher des vols"
-                  buttonIcon={<Search size={20} />}
-                />
-              )}
+            </div>
 
-              {activeTab === 'hotels' && (
-                <SearchForm 
-                  type="hotels"
-                  onSearch={handleSearch}
-                  fields={[
-                    { 
-                      id: 'destination', 
-                      label: 'Destination', 
-                      type: 'text', 
-                      placeholder: 'Ville ou hôtel',
-                      icon: <MapPin size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'dates', 
-                      label: 'Dates', 
-                      type: 'text', 
-                      placeholder: 'Arrivée - Départ',
-                      icon: <Calendar size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'rooms', 
-                      label: 'Chambres', 
-                      type: 'text', 
-                      placeholder: '1 chambre, 2 adultes',
-                      icon: <Users size={18} className="text-gray-400" />
-                    }
-                  ]}
-                  buttonText="Trouver un hôtel"
-                  buttonIcon={<Search size={20} />}
-                />
-              )}
+            {/* Swap Button */}
+            <div className="flex items-end justify-center pb-3">
+              <button
+                onClick={swapLocations}
+                className="p-2 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors"
+              >
+                <ArrowRightLeft size={20} className="text-gray-600" />
+              </button>
+            </div>
 
-              {activeTab === 'combined' && (
-                <SearchForm 
-                  type="combined"
-                  onSearch={handleSearch}
-                  fields={[
-                    { 
-                      id: 'departure', 
-                      label: 'Départ de', 
-                      type: 'text', 
-                      placeholder: 'Ville ou aéroport',
-                      icon: <MapPin size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'destination', 
-                      label: 'Destination', 
-                      type: 'text', 
-                      placeholder: 'Ville ou région',
-                      icon: <MapPin size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'dates', 
-                      label: 'Dates', 
-                      type: 'text', 
-                      placeholder: 'Départ - Retour',
-                      icon: <Calendar size={18} className="text-gray-400" />
-                    },
-                    { 
-                      id: 'travelers', 
-                      label: 'Voyageurs', 
-                      type: 'text', 
-                      placeholder: '2 adultes, 1 chambre',
-                      icon: <Users size={18} className="text-gray-400" />
-                    }
-                  ]}
-                  buttonText="Rechercher le package"
-                  buttonIcon={<Search size={20} />}
+            {/* To */}
+            <div className="relative" ref={toRef}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Vers</label>
+              <div
+                className="relative bg-white border border-gray-300 rounded-lg px-4 py-3 cursor-pointer hover:border-[#2979FF] focus-within:border-[#2979FF] focus-within:ring-2 focus-within:ring-[#2979FF]/20"
+                onClick={() => setShowToDropdown(!showToDropdown)}
+              >
+                <div className={`${toLocation ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                  {toLocation || 'Pays, ville ou aéroport'}
+                </div>
+                {showToDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
+                    {popularDestinations.map((airport) => (
+                      <div
+                        key={airport.code}
+                        className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => selectLocation(airport, 'to')}
+                      >
+                        <Plane className="text-gray-400 mr-3" size={20} />
+                        <div>
+                          <div className="font-medium">{airport.name} ({airport.code})</div>
+                          <div className="text-sm text-gray-600">{airport.city}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Departure Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Départ</label>
+              <div className="relative">
+                <DatePicker
+                  selected={departureDate}
+                  onChange={(date: Date) => setDepartureDate(date)}
+                  dateFormat="dd/MM/yyyy"
+                  minDate={new Date()}
+                  locale={fr}
+                  placeholderText="Ajouter une date"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#2979FF] focus:border-transparent"
                 />
-              )}
-            </Suspense>
+                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              </div>
+            </div>
+
+            {/* Return Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Retour</label>
+              <div className="relative">
+                <DatePicker
+                  selected={returnDate}
+                  onChange={(date: Date) => setReturnDate(date)}
+                  dateFormat="dd/MM/yyyy"
+                  minDate={departureDate || new Date()}
+                  locale={fr}
+                  placeholderText="Ajouter une date"
+                  disabled={tripType === 'one-way'}
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#2979FF] focus:border-transparent disabled:bg-gray-100"
+                />
+                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Boutons d'action optimisés */}
-        <div className="flex flex-col sm:flex-row justify-center mt-8 space-y-3 sm:space-y-0 sm:space-x-6">
-          <button 
-            onClick={() => navigate('/offers')}
-            className="btn-secondary w-full sm:w-auto px-8 py-4 text-lg font-semibold will-change-transform"
-          >
-            <Sparkles className="mr-2" size={20} />
-            Découvrir les offres
-          </button>
-          <button 
-            onClick={() => navigate('/destinations')}
-            className="btn-primary w-full sm:w-auto px-8 py-4 text-lg font-semibold will-change-transform"
-          >
-            <TrendingUp className="mr-2" size={20} />
-            Destinations tendances
-          </button>
+          {/* Passengers and Class */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Voyageurs et classe</label>
+              <div
+                className="bg-white border border-gray-300 rounded-lg px-4 py-3 cursor-pointer hover:border-[#2979FF] focus-within:border-[#2979FF] focus-within:ring-2 focus-within:ring-[#2979FF]/20"
+                onClick={() => setShowPassengersDropdown(!showPassengersDropdown)}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-900">
+                    {passengers.adults + passengers.children + passengers.infants} Adulte{passengers.adults > 1 ? 's' : ''}, {passengers.class === 'economy' ? 'Économie' : passengers.class}
+                  </span>
+                  <Users size={20} className="text-gray-400" />
+                </div>
+              </div>
+
+              {showPassengersDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 p-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span>Adultes</span>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => setPassengers(prev => ({ ...prev, adults: Math.max(1, prev.adults - 1) }))}
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center">{passengers.adults}</span>
+                        <button
+                          onClick={() => setPassengers(prev => ({ ...prev, adults: prev.adults + 1 }))}
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span>Enfants</span>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => setPassengers(prev => ({ ...prev, children: Math.max(0, prev.children - 1) }))}
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center">{passengers.children}</span>
+                        <button
+                          onClick={() => setPassengers(prev => ({ ...prev, children: prev.children + 1 }))}
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Classe</label>
+                      <select
+                        value={passengers.class}
+                        onChange={(e) => setPassengers(prev => ({ ...prev, class: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      >
+                        <option value="economy">Économie</option>
+                        <option value="premium">Premium</option>
+                        <option value="business">Affaires</option>
+                        <option value="first">Première</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={() => setShowPassengersDropdown(false)}
+                      className="w-full bg-[#2979FF] text-white py-2 rounded-lg hover:bg-[#1e5bb8] transition-colors"
+                    >
+                      Terminé
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Options */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={nearbyAirports}
+                onChange={(e) => setNearbyAirports(e.target.checked)}
+                className="mr-2 rounded border-gray-300 text-[#2979FF] focus:ring-[#2979FF]"
+              />
+              <span className="text-sm text-gray-700">Ajouter des aéroports à proximité</span>
+            </label>
+            
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={directFlights}
+                onChange={(e) => setDirectFlights(e.target.checked)}
+                className="mr-2 rounded border-gray-300 text-[#2979FF] focus:ring-[#2979FF]"
+              />
+              <span className="text-sm text-gray-700">Vols directs</span>
+            </label>
+          </div>
+
+          {/* Search Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleSearch}
+              className="bg-[#2979FF] hover:bg-[#1e5bb8] text-white px-12 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 shadow-lg flex items-center"
+            >
+              <Search className="mr-2" size={20} />
+              Rechercher
+            </button>
+          </div>
         </div>
       </div>
     </section>
-  );
-};
-
-interface SearchTabProps {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  description: string;
-  badge?: string;
-}
-
-const SearchTab: React.FC<SearchTabProps> = ({ active, onClick, icon, label, description, badge }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative flex-none sm:flex-1 py-4 px-6 text-center font-medium border-b-2 whitespace-nowrap transition-all duration-200 will-change-transform ${
-        active 
-          ? 'text-blue-600 border-blue-600 bg-blue-50/50' 
-          : 'text-gray-600 border-transparent hover:text-blue-500 hover:bg-blue-50/30'
-      }`}
-    >
-      <div className="flex flex-col items-center">
-        <div className="flex items-center justify-center mb-1">
-          {icon}
-          <span className="ml-2 font-semibold">{label}</span>
-          {badge && (
-            <span className="ml-2 bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-              {badge}
-            </span>
-          )}
-        </div>
-        <span className="text-xs text-gray-500">{description}</span>
-      </div>
-    </button>
-  );
-};
-
-const StatCard: React.FC<{ number: string; label: string }> = ({ number, label }) => {
-  return (
-    <div className="glass-effect px-6 py-3 rounded-2xl will-change-transform">
-      <div className="text-2xl font-bold text-white">{number}</div>
-      <div className="text-sm text-white/80">{label}</div>
-    </div>
   );
 };
 
